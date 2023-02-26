@@ -130,26 +130,29 @@ impl State {
             return self.geo;
         }
         // if let Some(val) = cache.get(&self) {
-        //     // println!("from cache!");
         //     return *val;
         // }
         let mut maxi = 0;
         if self.n_obs_robot > 0 {
             let clone = &mut self.clone();
             clone.buy(Robot::Geo, blueprint);
-            maxi = maxi.max(clone.explore(blueprint,    cache));
+            maxi = maxi.max(clone.explore(blueprint, cache));
         }
-        if self.n_clay_robot > 0 {
+        if self.n_clay_robot > 0 && self.obs <= blueprint.geo_robot_in_obs {
             let clone = &mut self.clone();
             clone.buy(Robot::Obs, blueprint);
             maxi = maxi.max(clone.explore(blueprint, cache));
         }
-        let clone = &mut self.clone();
-        clone.buy(Robot::Clay, blueprint);
-        maxi = maxi.max(clone.explore(blueprint, cache));
-        let clone = &mut self.clone();
-        clone.buy(Robot::Ore, blueprint);
-        maxi = maxi.max(clone.explore(blueprint, cache));
+        if self.clay <= blueprint.obs_robot_in_clay {
+            let clone = &mut self.clone();
+            clone.buy(Robot::Clay, blueprint);
+            maxi = maxi.max(clone.explore(blueprint, cache));
+        }
+        if self.ore <= blueprint.clay_robot_in_ore + blueprint.obs_robot_in_ore + blueprint.geo_robot_in_ore {
+            let clone = &mut self.clone();
+            clone.buy(Robot::Ore, blueprint);
+            maxi = maxi.max(clone.explore(blueprint, cache));
+        }
         // cache.insert(self.clone(), maxi);
         maxi
     }
@@ -160,20 +163,24 @@ fn main() {
     let input = read_to_string("./data/input.txt").unwrap();
     let blueprints: Vec<Blueprint> = input.lines().map(|line| Blueprint::from(line)).collect();
 
-    let mut cache = HashMap::new();
     let state = State::new(24);
     let res: isize = blueprints
         .iter()
-        .map(|blueprint| blueprint.id * state.explore(blueprint, &mut cache))
+        .map(|blueprint| {
+            let mut cache = HashMap::new();
+            blueprint.id * state.explore(blueprint, &mut cache)
+        })
         .sum();
     println!("Part 1: {:?}", res);
 
-    let mut cache = HashMap::new();
     let state = State::new(32);
     let res: isize = blueprints
         .iter()
         .take(3)
-        .map(|blueprint| state.explore(blueprint, &mut cache))
+        .map(|blueprint| {
+            let mut cache = HashMap::new();
+            state.explore(blueprint, &mut cache)
+        })
         .reduce(|acc, val| acc * val)
         .unwrap();
     println!("Part 2: {:?}", res);
