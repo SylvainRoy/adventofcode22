@@ -8,7 +8,7 @@ app = typer.Typer()
 
 @app.command()
 def build():
-    dirs = [d for d in Path(__file__).parent.iterdir() if d.is_dir()]
+    dirs = [d for d in Path(__file__).parent.iterdir() if d.is_dir() and d.name != ".git"]
     dirs = sorted(dirs)
     for p in dirs:
         if not p.is_dir():
@@ -18,7 +18,7 @@ def build():
 
 @app.command()
 def run():
-    dirs = [d for d in Path(__file__).parent.iterdir() if d.is_dir()]
+    dirs = [d for d in Path(__file__).parent.iterdir() if d.is_dir() and d.name != ".git"]
     dirs = sorted(dirs)
     for p in dirs:
         if not p.is_dir():
@@ -28,4 +28,3 @@ def run():
 
 if __name__ == '__main__':
     app()
-
